@@ -37,6 +37,7 @@ $(function() {
                         'url': tab.url,
                         'items': []
                     };
+                    var currentItems = {};
                     for (var i = 0; i < items.length; i++) {
                         var item = items[i];
                         if (item.tabId === tab.id && item.windowId === tab.windowId && item.tabUrl === tab.url) {
@@ -44,6 +45,7 @@ $(function() {
                                 'tag': item.field,
                                 'selector': item.selector
                             });
+                            currentItems[item.field] = item.html;
                         } else {
                             newItems.push(item);
                         }
@@ -52,6 +54,9 @@ $(function() {
                         $.post(data.options.request, {
                             'jsonRule': JSON.stringify(obj)
                         }, function(response) {
+                            console.log(response);
+                            log('manual');
+                            log(response);
                             if (response.notice) {
                                 var article = response.notice;
                                 if (newItems.length > 0) {
@@ -122,12 +127,47 @@ $(function() {
                                             document.body.appendChild(temp_form);
                                             temp_form.submit();
                                         } else {
-                                            log('not enough info.');
+                                            var postInfo = {
+                                                'article_ContentFrom': currentItems.source,
+                                                'article_title': currentItems.title,
+                                                'article_content': currentItems.content,
+                                                'article_keyword': ''
+                                            }
+                                            var temp_form = document.createElement("form");
+                                            temp_form.action = data.options.afterRequest;
+                                            temp_form.target = "_blank";
+                                            temp_form.method = "post";
+                                            for (var x in postInfo) {
+                                                var opt = document.createElement("input");
+                                                opt.name = x;
+                                                opt.value = postInfo[x];
+                                                temp_form.appendChild(opt);
+                                            }
+                                            document.body.appendChild(temp_form);
+                                            temp_form.submit();
                                         }
                                     });
                                 }
                             } else {
-                                alert('?');
+                                log('rule failed');
+                                var postInfo = {
+                                    'article_ContentFrom': currentItems.source,
+                                    'article_title': currentItems.title,
+                                    'article_content': currentItems.content,
+                                    'article_keyword': ''
+                                }
+                                var temp_form = document.createElement("form");
+                                temp_form.action = data.options.afterRequest;
+                                temp_form.target = "_blank";
+                                temp_form.method = "post";
+                                for (var x in postInfo) {
+                                    var opt = document.createElement("input");
+                                    opt.name = x;
+                                    opt.value = postInfo[x];
+                                    temp_form.appendChild(opt);
+                                }
+                                document.body.appendChild(temp_form);
+                                temp_form.submit();
                             }
                         }, 'json').fail(function() {
                             log('interface response exception.');

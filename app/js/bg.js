@@ -8,9 +8,8 @@ chrome.browserAction.onClicked.addListener(function(tab) {
     chrome.storage.sync.get('options', function(options) {
         $.get(options.options.beforeRequest, {
             'url': tab.url
-        }).done(function(data) {
+        }).done(function(article) {
             try {
-                var article = JSON.parse(data);
                 if (article.title && article.content && article.source) {
                     var postInfo = {
                         'article_ContentFrom': article.source,
@@ -34,6 +33,7 @@ chrome.browserAction.onClicked.addListener(function(tab) {
                     throw new Error('not enough info');
                 }
             } catch (e) {
+                console.log(e);
                 chrome.browserAction.getPopup({
                     'tabId': tab.id
                 }, function(result) {
@@ -61,6 +61,7 @@ chrome.browserAction.onClicked.addListener(function(tab) {
                 });
             }
         }).fail(function() {
+            console.log('fail');
             chrome.browserAction.getPopup({
                 'tabId': tab.id
             }, function(result) {
@@ -181,7 +182,8 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
                     if (item.tabUrl === tab.url && item.tabId === tab.id && item.windowId === tab.windowId) {
                         currentSelector.push({
                             "selector": item.selector,
-                            "tag": item.field
+                            "tag": item.field,
+                            "html":item.html
                         });
                     }
                 }

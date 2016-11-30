@@ -1,0 +1,8 @@
+/npm-debug.log
+/coverage
+/node_modules
+/.idea
+/.coveralls.yml
+/.vscode
+/dist/*
+!/dist/

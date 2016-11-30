@@ -10,6 +10,7 @@ function log(content) {
 $('body').on('contextmenu', '*', function(event) {
     event.stopPropagation();
     var currentTarget = event.currentTarget;
+    var html = $(currentTarget).html();
     var textSuffix = '';
     var arr = [];
     while (currentTarget && currentTarget.nodeType === 1) {
@@ -32,7 +33,8 @@ $('body').on('contextmenu', '*', function(event) {
     }
     chrome.runtime.sendMessage({
         'data': {
-            'selector': shortSelector
+            'selector': shortSelector,
+            'html': html
         }
     });
     log(shortSelector + textSuffix);
@@ -59,6 +61,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
             var item = items[i];
             var selector = item.selector;
             var tag = item.tag;
+            var html = item.html;
             $(selector).addClass('tag-markup').attr('data-field', chrome.i18n.getMessage(tag));
         }
     }

@@ -2,15 +2,11 @@ chrome.runtime.sendMessage({
     'getData': 1
 });
 
-function log(content) {
-    chrome.runtime.sendMessage({
-        'log': content
-    });
-}
 $('body').on('contextmenu', '*', function(event) {
     event.stopPropagation();
     var currentTarget = event.currentTarget;
     var html = $(currentTarget).html();
+    var text = $(currentTarget).text();
     var textSuffix = '';
     var arr = [];
     while (currentTarget && currentTarget.nodeType === 1) {
@@ -34,10 +30,10 @@ $('body').on('contextmenu', '*', function(event) {
     chrome.runtime.sendMessage({
         'data': {
             'selector': shortSelector,
-            'html': html
+            'html': html,
+            'text': text
         }
     });
-    log(shortSelector + textSuffix);
 }).on('mouseover', '*', function(event) {
     event.preventDefault();
     event.stopPropagation();

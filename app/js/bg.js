@@ -61,7 +61,6 @@ chrome.browserAction.onClicked.addListener(function(tab) {
                 });
             }
         }).fail(function() {
-            console.log('fail');
             chrome.browserAction.getPopup({
                 'tabId': tab.id
             }, function(result) {
@@ -78,8 +77,7 @@ chrome.browserAction.onClicked.addListener(function(tab) {
                         'popup': 'popup.html'
                     });
                     for (var i = 0; i < fields.length; i++) {
-                        var field = fields[i];
-                        createMenus(field);
+                        createMenus(fields[i]);
                     }
                     chrome.tabs.executeScript(tab.id, {
                         'file': 'js/collector.js',
@@ -90,7 +88,7 @@ chrome.browserAction.onClicked.addListener(function(tab) {
         });
     });
 });
-chrome.runtime.onInstalled.addListener(function(details) {
+chrome.runtime.onInstalled.addListener(function() {
     chrome.tabs.create({
         'url': 'options.html'
     });
@@ -183,7 +181,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
                         currentSelector.push({
                             "selector": item.selector,
                             "tag": item.field,
-                            "html":item.html
+                            "html": item.html
                         });
                     }
                 }

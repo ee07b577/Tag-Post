@@ -31,5 +31,8 @@
     },
     "save": {
         "message": "保存"
+    },
+    "submit": {
+        "message": "提交"
     }
 }

@@ -14,15 +14,9 @@ function refresh() {
                 }
             } else {
                 $("#lstItems").hide();
-                $("#btnClear,#btnSubmit").attr("disabled", "disabled");
+                $("#btnSubmit").attr("disabled", "disabled");
             }
         });
-    });
-}
-
-function log(content) {
-    chrome.runtime.sendMessage({
-        'log': content
     });
 }
 $(function() {
@@ -54,9 +48,6 @@ $(function() {
                         $.post(data.options.request, {
                             'jsonRule': JSON.stringify(obj)
                         }, function(response) {
-                            console.log(response);
-                            log('manual');
-                            log(response);
                             if (response.notice) {
                                 var article = response.notice;
                                 if (newItems.length > 0) {
@@ -92,11 +83,10 @@ $(function() {
                                             document.body.appendChild(temp_form);
                                             temp_form.submit();
                                         } else {
-                                            log('not enough info.');
+
                                         }
                                     });
                                 } else {
-                                    log(article);
                                     chrome.storage.local.clear(function() {
                                         refresh();
                                         chrome.browserAction.setBadgeText({
@@ -149,7 +139,6 @@ $(function() {
                                     });
                                 }
                             } else {
-                                log('rule failed');
                                 var postInfo = {
                                     'article_ContentFrom': currentItems.source,
                                     'article_title': currentItems.title,
@@ -170,7 +159,7 @@ $(function() {
                                 temp_form.submit();
                             }
                         }, 'json').fail(function() {
-                            log('interface response exception.');
+
                         });
                     });
                 }

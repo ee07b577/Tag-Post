@@ -1,0 +1,26 @@
+{
+    "extName": {
+        "message": "Tag Fetcher"
+    },
+    "title": {
+        "message": "Title"
+    },
+    "source": {
+        "message": "Source"
+    },
+    "content": {
+        "message": "Content"
+    },
+    "author": {
+        "message": "Author"
+    },
+    "datetime": {
+        "message": "Datetime"
+    },
+    "markupAs": {
+        "message": "Markup As: "
+    },
+    "config": {
+        "message": "Configuration"
+    }
+}

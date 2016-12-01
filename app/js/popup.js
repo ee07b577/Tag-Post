@@ -182,4 +182,4 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.update && request.update === 1) {
         render();
     }
-});;;;;;
+});

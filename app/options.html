@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="utf-8">
+    <title></title>
     <link rel="stylesheet" href="./css/bootstrap.min.css">
     <link rel="stylesheet" href="./css/bootstrap-theme.min.css">
     <script src="./js/jquery.min.js"></script>
@@ -53,6 +54,54 @@
                                     <div class="input-group">
                                         <span class="input-group-addon"><span class="glyphicon glyphicon-export"></span></span>
                                         <input type="text" class="form-control" data-option="afterRequest">
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="panel panel-info">
+                    <div class="panel-heading" data-i18n="selector"></div>
+                    <div class="panel-body">
+                        <form class="form-horizontal">
+                            <div class="form-group form-group-sm">
+                                <label class="col-md-2 control-label" data-i18n="fullPath"></label>
+                                <div class="col-md-10">
+                                    <div class="checkbox">
+                                        <label><input type="checkbox" data-option="fullPath"></label>
+                                    </div><span class="help-block">xx</span>
+                                </div>
+
+                            </div>
+                            <div class="form-group form-group-sm">
+                                <label class="col-md-2 control-label" data-i18n="tag"></label>
+                                <div class="col-md-10">
+                                    <div class="checkbox">
+                                        <label><input type="checkbox" data-option="tag"><code>HTML>BODY>DIV</code></label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group form-group-sm">
+                                <label class="col-md-2 control-label" data-i18n="id"></label>
+                                <div class="col-md-10">
+                                    <div class="checkbox">
+                                        <label><input type="checkbox" data-option="id"><code>#id</code></label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group form-group-sm">
+                                <label class="col-md-2 control-label" data-i18n="class"></label>
+                                <div class="col-md-10">
+                                    <div class="checkbox">
+                                        <label><input type="checkbox" data-option="class"><code>.class</code></label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group form-group-sm">
+                                <label class="col-md-2 control-label" data-i18n="nth"></label>
+                                <div class="col-md-10">
+                                    <div class="checkbox">
+                                        <label><input type="checkbox" data-option="nth"><code>:nth-of-type(n)</code></label>
                                     </div>
                                 </div>
                             </div>

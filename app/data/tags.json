@@ -1,0 +1,19 @@
+{
+    "title": {
+        "name": "标题",
+        "unique": true,
+        "required": true,
+        "html":false
+    },
+    "content": {
+        "name": "内容",
+        "unique": true,
+        "required": true,
+        "html":true
+    },
+    "source": {
+        "name": "来源",
+        "unique": true,
+        "required": true
+    }
+}

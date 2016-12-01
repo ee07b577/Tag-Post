@@ -5,3 +5,7 @@ button {
 .container-fluid {
     width: 320px;
 }
+
+form {
+    display: none;
+}

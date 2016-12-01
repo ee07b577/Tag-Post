@@ -1,6 +1,6 @@
 function refresh() {
-    chrome.tabs.getSelected(null, function(tab) {
-        chrome.storage.local.get('selectorList', function(data) {
+    chrome.tabs.getSelected(null, function (tab) {
+        chrome.storage.local.get('selectorList', function (data) {
             if (data.hasOwnProperty('selectorList')) {
                 var items = data.selectorList;
                 $('.list-group').html('');
@@ -19,11 +19,11 @@ function refresh() {
         });
     });
 }
-$(function() {
+$(function () {
     refresh();
-    $("#btnSubmit").click(function() {
-        chrome.tabs.getSelected(null, function(tab) {
-            chrome.storage.local.get('selectorList', function(data) {
+    $("#btnSubmit").click(function () {
+        chrome.tabs.getSelected(null, function (tab) {
+            chrome.storage.local.get('selectorList', function (data) {
                 if (data.hasOwnProperty('selectorList')) {
                     var items = data.selectorList;
                     var newItems = [];
@@ -44,16 +44,16 @@ $(function() {
                             newItems.push(item);
                         }
                     }
-                    chrome.storage.sync.get('options', function(data) {
+                    chrome.storage.sync.get('options', function (data) {
                         $.post(data.options.request, {
                             'jsonRule': JSON.stringify(obj)
-                        }, function(response) {
+                        }, function (response) {
                             if (response.notice) {
                                 var article = response.notice;
                                 if (newItems.length > 0) {
                                     chrome.storage.local.set({
                                         'selectorList': newItems
-                                    }, function() {
+                                    }, function () {
                                         refresh();
                                         chrome.browserAction.setBadgeText({
                                             'tabId': tab.id,
@@ -87,7 +87,7 @@ $(function() {
                                         }
                                     });
                                 } else {
-                                    chrome.storage.local.clear(function() {
+                                    chrome.storage.local.clear(function () {
                                         refresh();
                                         chrome.browserAction.setBadgeText({
                                             'tabId': tab.id,
@@ -158,7 +158,7 @@ $(function() {
                                 document.body.appendChild(temp_form);
                                 temp_form.submit();
                             }
-                        }, 'json').fail(function() {
+                        }, 'json').fail(function () {
 
                         });
                     });
@@ -166,11 +166,11 @@ $(function() {
             });
         });
     });
-    $('body').on('click', '.glyphicon-remove', function() {
+    $('body').on('click', '.glyphicon-remove', function () {
         var field = $(this).data('tag');
         var selector = $(this).data('selector');
-        chrome.tabs.getSelected(null, function(tab) {
-            chrome.storage.local.get('selectorList', function(data) {
+        chrome.tabs.getSelected(null, function (tab) {
+            chrome.storage.local.get('selectorList', function (data) {
                 if (data.hasOwnProperty('selectorList')) {
                     var items = data.selectorList;
                     for (var i = 0; i < items.length; i++) {
@@ -182,11 +182,11 @@ $(function() {
                     if (items.length > 0) {
                         chrome.storage.local.set({
                             'selectorList': items
-                        }, function() {
+                        }, function () {
                             refresh();
                         });
                     } else {
-                        chrome.storage.local.clear(function() {
+                        chrome.storage.local.clear(function () {
                             refresh();
                             window.close();
                         })
@@ -200,7 +200,7 @@ $(function() {
         });
     });
 });
-chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     if (request.update && request.update === 1) {
         refresh();
     }

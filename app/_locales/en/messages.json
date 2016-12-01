@@ -22,5 +22,8 @@
     },
     "config": {
         "message": "Configuration"
+    },
+    "submit": {
+        "message": "Submit"
     }
 }

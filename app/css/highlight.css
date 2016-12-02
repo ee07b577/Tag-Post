@@ -1,14 +1,23 @@
+:root {
+    --shadow: inset 0 0 0 1px;
+}
+
 .tag-highlight {
-    box-shadow: inset 0 0 0 1px #c00;
+    box-shadow: var(--shadow) #c00;
+}
+
+img.tag-highlight {
+    box-shadow: 0 0 0 0;
+    filter: drop-shadow(0 0 1px #f00);
 }
 
 .tag-markup {
-    box-shadow: inset 0 0 0 1px #0c0;
+    box-shadow: var(--shadow) #0c0;
     position: relative;
 }
 
 .tag-conflict {
-    box-shadow: inset 0 0 0 1px #00c;
+    box-shadow: var(--shadow) #00c;
 }
 
 .tag-markup::before {

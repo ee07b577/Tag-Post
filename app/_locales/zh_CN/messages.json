@@ -2,15 +2,6 @@
     "extName": {
         "message": "标寄"
     },
-    "title": {
-        "message": "标题"
-    },
-    "source": {
-        "message": "来源"
-    },
-    "content": {
-        "message": "内容"
-    },
     "markupAs": {
         "message": "标记为："
     },
@@ -21,18 +12,39 @@
         "message": "接口地址"
     },
     "before": {
-        "message": "智能分析接口"
+        "message": "预处理接口地址"
     },
     "after": {
         "message": "文章发布接口"
     },
     "inter": {
-        "message": "人工分析接口"
+        "message": "标记提交接口地址"
+    },
+    "selector": {
+        "message": "选择器输出配置"
     },
     "save": {
         "message": "保存"
     },
     "submit": {
         "message": "提交"
+    },
+    "fullPath": {
+        "mesage": "完整路径"
+    },
+    "class": {
+        "message": "类选择器"
+    },
+    "id": {
+        "message": "ID选择器"
+    },
+    "element": {
+        "message": "元素选择器"
+    },
+    "nthOfType": {
+        "message": "伪类选择器"
+    },
+    "fullPath": {
+        "message": "完整路径"
     }
 }

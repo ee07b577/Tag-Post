@@ -29,6 +29,9 @@
     "submit": {
         "message": "提交"
     },
+    "pathIntro": {
+        "message": "默认为从第一个#id选择器开始"
+    },
     "fullPath": {
         "mesage": "完整路径"
     },

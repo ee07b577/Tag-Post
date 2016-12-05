@@ -1,129 +1,129 @@
-'use strict';
-var fields = ['title', 'source', 'content'];
-var arr = [];
-chrome.browserAction.setBadgeText({
-    'text': ''
-});
-chrome.browserAction.onClicked.addListener(function(tab) {
-    chrome.storage.sync.get('options', function(options) {
+const XHR = new XMLHttpRequest();
+let Tags;
+XHR.onreadystatechange = () => {
+    //console.info('[background.XHR.readyStateChanged]');
+    if (XHR.readyState === 4) {
+        //console.info('[background.XHR.readyStateChanged]:XHR.readyState==4')
+        Tags = JSON.parse(XHR.responseText);
+    }
+};
+XHR.open("GET", chrome.extension.getURL('data/tags.json'), true);
+XHR.send();
+let Arr = [];
+for (let e of[chrome.tabs.onUpdated, chrome.tabs.onMoved, chrome.tabs.onSelectionChanged]) {
+    e.addListener(() => {
+        //console.warn(`[background.chrome.tabs.on$Event$.addListener]`);
+        chrome.runtime.sendMessage({
+            'update': 1
+        });
+    });
+}
+
+function inject(tab) {
+    console.info(`[background.inject]`);
+    let browserAction = chrome.browserAction;
+    browserAction.getPopup({
+        'tabId': tab.id
+    }, result => {
+        console.info(`[background.inject.chrome.browserAction.getPopup]`);
+        if (!result) {
+            console.info(`[background.inject.chrome.browserAction.getPopup]:result`);
+            browserAction.setBadgeText({
+                'tabId': tab.id,
+                'text': '·'
+            });
+            browserAction.setBadgeBackgroundColor({
+                'color': '#c00'
+            })
+            browserAction.setPopup({
+                'tabId': tab.id,
+                'popup': 'popup.html'
+            });
+            for (let key in Tags) {
+                createMenus(key);
+            }
+            chrome.tabs.executeScript(tab.id, {
+                'file': 'js/jquery.min.js',
+                'runAt': 'document_end'
+            }, () => {
+                chrome.tabs.executeScript(tab.id, {
+                    'file': 'js/collector.js',
+                    'runAt': 'document_end'
+                });
+            });
+        }
+    });
+}
+chrome.browserAction.onClicked.addListener(function (tab) {
+    console.warn('[chrome.browserAction.onClicked.addListener]');
+    chrome.storage.sync.get('options', function (options) {
+        console.info('[chrome.storage.sync.get]:options');
         $.get(options.options.beforeRequest, {
             'url': tab.url
-        }).done(function(article) {
-            try {
-                if (article.title && article.content && article.source) {
-                    var postInfo = {
-                        'article_ContentFrom': article.source,
-                        'article_title': article.title,
-                        'article_content': article.content,
-                        'article_keyword': ''
-                    }
-                    var temp_form = document.createElement("form");
-                    temp_form.action = options.options.afterRequest;
-                    temp_form.target = "_blank";
-                    temp_form.method = "post";
-                    for (var x in postInfo) {
-                        var opt = document.createElement("input");
-                        opt.name = x;
-                        opt.value = postInfo[x];
-                        temp_form.appendChild(opt);
-                    }
-                    document.body.appendChild(temp_form);
-                    temp_form.submit();
-                } else {
-                    throw new Error('not enough info');
+        }).done(article => {
+            console.info('[$.get]:beforeRequest:done');
+            for (let key in Tags) {
+                let tag = Tags[key];
+                if (tag.required && !article[key]) {
+                    inject(tab);
+                    return;
+                    break;
                 }
-            } catch (e) {
-                console.log(e);
-                chrome.browserAction.getPopup({
-                    'tabId': tab.id
-                }, function(result) {
-                    if (!result) {
-                        chrome.browserAction.setBadgeText({
-                            'tabId': tab.id,
-                            'text': '·'
-                        });
-                        chrome.browserAction.setBadgeBackgroundColor({
-                            'color': '#c00'
-                        })
-                        chrome.browserAction.setPopup({
-                            'tabId': tab.id,
-                            'popup': 'popup.html'
-                        });
-                        for (var i = 0; i < fields.length; i++) {
-                            var field = fields[i];
-                            createMenus(field);
-                        }
-                        chrome.tabs.executeScript(tab.id, {
-                            'file': 'js/collector.js',
-                            'runAt': 'document_end'
-                        });
-                    }
-                });
             }
-        }).fail(function() {
-            chrome.browserAction.getPopup({
-                'tabId': tab.id
-            }, function(result) {
-                if (!result) {
-                    chrome.browserAction.setBadgeText({
-                        'tabId': tab.id,
-                        'text': '·'
-                    });
-                    chrome.browserAction.setBadgeBackgroundColor({
-                        'color': '#c00'
-                    })
-                    chrome.browserAction.setPopup({
-                        'tabId': tab.id,
-                        'popup': 'popup.html'
-                    });
-                    for (var i = 0; i < fields.length; i++) {
-                        createMenus(fields[i]);
-                    }
-                    chrome.tabs.executeScript(tab.id, {
-                        'file': 'js/collector.js',
-                        'runAt': 'document_end'
-                    });
-                }
-            });
+            let data = {
+                'article_ContentFrom': article.source,
+                'article_title': article.title,
+                'article_content': article.content,
+                'article_keyword': ''
+            }
+            let str = "";
+            for (let key in data) {
+                log(data[key]);
+                str += $("<input/>").attr('name', key).attr('type', 'hidden').val(data[key]).prop('outerHTML');
+            }
+            $('form').attr('action', options.options.afterRequest).append(str).submit();
+            chrome.tabs.reload(tab.id);
+        }).fail(() => {
+            inject(tab);
         });
     });
 });
-chrome.runtime.onInstalled.addListener(function() {
-    chrome.tabs.create({
-        'url': 'options.html'
+chrome.runtime.onInstalled.addListener(() => {
+    //console.warn(`[background.chrome.runtime.onInstalled.addListener]`);
+    chrome.storage.local.clear(() => {
+        chrome.tabs.create({
+            'url': 'options.html'
+        });
     });
 });
 
 function getSelector(tab) {
-    if (arr.length > 0) {
-        do {
-            var data = arr.pop();
-            if (data.tabId === tab.id && data.windowId === data.windowId && data.tabUrl === data.tabUrl) {
-                return data;
-            }
-        } while (arr.length === 0);
+    while (Arr.length === 0); {
+        let data = Arr.pop();
+        if (data.tabId === tab.id && data.windowId === data.windowId && data.tabUrl === data.tabUrl) {
+            return data;
+        }
     }
 }
 
-function restore(field, tab) {
-    var info = getSelector(tab);
-    if (info) {
-        info.field = field;
-        chrome.storage.local.get('selectorList', function(data) {
-            if (data.hasOwnProperty('selectorList')) {
-                data.selectorList.push(info);
-                chrome.storage.local.set({
-                    'selectorList': data.selectorList
-                });
-            } else {
-                chrome.storage.local.set({
-                    'selectorList': [info]
-                });
-            }
+function restore(key, tab) {
+    console.info(`[background.restore]`);
+    var selector = getSelector(tab);
+    if (selector) {
+        console.info(`[background.restore]:selector`);
+        selector.tag = key; //?key?
+        chrome.storage.local.get('selectorList', data => {
+            console.info(`[background.restore.chrome.storage.local.get]:selectorList`);
+            let selectorList = data.selectorList || [];
+            selectorList.push(selector);
+            chrome.storage.local.set({
+                'selectorList': data.selectorList
+            });
         });
         chrome.tabs.sendMessage(tab.id, {
-            'addTag': info.selector,
-            'tagName': info.field
+            'addTag': selector,
+            'tagName': Tags[key].name,
+            'tagId': key
         });
         chrome.runtime.sendMessage({
             'update': 1
@@ -131,75 +131,56 @@ function restore(field, tab) {
     }
 }
 
-var events = {
-    "updated": chrome.tabs.onUpdated,
-    "moved": chrome.tabs.onMoved,
-    "selectionChanged": chrome.tabs.onSelectionChanged
-};
-for (var i in events) {
-    events[i].addListener(function(tabId) {
-        chrome.runtime.sendMessage({
-            'update': 1
-        });
-    });
-}
 
-function createMenus(field) {
-    chrome.contextMenus.removeAll(function() {
+function createMenus(key) {
+    console.info(`[background.createMenus]`);
+    chrome.contextMenus.removeAll(() => {
+        console.info('[background.createMenus.chrome.contextMenus.removeAll]');
         chrome.contextMenus.create({
-            'title': chrome.i18n.getMessage('markupAs') + chrome.i18n.getMessage(field),
+            'title': chrome.i18n.getMessage('markupAs') + Tags[key].name,
             'contexts': ['all'],
-            'onclick': function(info, tab) {
-                restore(field, tab);
+            'onclick': (info, tab) => {
+                console.info(`[background.createMenus.chrome.contextMenus.removeAll.chrome.contextMenus.create.onclick]`);
+                restore(key, tab);
             }
         });
     });
 }
-chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-    var tab = sender.tab || request.tab;
-    if (request.options) {
-        var options = request.options;
-        if (typeof(options) === 'boolean') {
-            console.log('get');
-            getOption(sendResponse);
-        }
-        if (options instanceof Array) {
-            setOption(options, sendResponse);
-        }
-    }
+chrome.runtime.onMessage.addListener((request, sender) => {
+    //console.warn('[background.chrome.runtime.onMessage.addListener]');
+    let tab = sender.tab || request.tab;
     if (request.log) {
+        //console.log('[background.chrome.runtime.onMessage.addListener]:log');
         console.log(request.log);
     }
     if (request.getData) {
-        chrome.storage.local.get('selectorList', function(data) {
-            if (data.hasOwnProperty('selectorList')) {
-                var items = data.selectorList;
-                var currentSelector = [];
-                for (var i = 0; i < items.length; i++) {
-                    var item = items[i];
+        console.info('[background.chrome.runtime.onMessage.addListener]:getData');
+        chrome.storage.local.get('selectorList', data => {
+            console.info('[background][message]:getData[storage.local.get]:selectorList');
+            let currentSelector = [];
+            if (data.selectorList) {
+                let items = data.selectorList;
+                for (let item of items) {
                     if (item.tabUrl === tab.url && item.tabId === tab.id && item.windowId === tab.windowId) {
                         currentSelector.push({
                             "selector": item.selector,
-                            "tag": item.field,
+                            "tag": item.tag,
                             "html": item.html
                         });
                     }
                 }
-                chrome.tabs.sendMessage(tab.id, {
-                    'currentSelector': currentSelector
-                });
-            } else {
-                chrome.tabs.sendMessage(tab.id, {
-                    'currentSelector': []
-                });
             }
+            chrome.tabs.sendMessage(tab.id, {
+                'currentSelector': currentSelector
+            });
         });
     }
     if (request.data) {
-        var data = request.data;
+        console.info('[background.chrome.runtime.onMessage.addListener]:data');
+        let data = request.data;
         data.tabId = tab.id;
         data.windowId = tab.windowId;
         data.tabUrl = tab.url;
-        arr.push(data);
+        Arr.push(data);
     }
 });

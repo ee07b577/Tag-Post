@@ -1,7 +1,11 @@
 function render() {
+    log(`[popup.render]`);
     chrome.tabs.getSelected(null, tab => {
+        log(`[popup.render.chrome.tabs.getSelected]`);
         chrome.storage.local.get('selectorList', data => {
-            if (data.hasOwnProperty('selectorList')) {
+            log(`[popup.render.chrome.storage.local.get]:selectorList`);
+            if (data.selectorList) {
+                log(`[popup.render.chrome.storage.local.get]:selectorList.selectorList`);
                 var items = data.selectorList;
                 $('.list-group').html('');
                 for (var i = 0; i < items.length; i++) {
@@ -13,6 +17,7 @@ function render() {
                     }
                 }
             } else {
+                log(`[popup.render.chrome.storage.local.get]:selectorList.!selectorList`);
                 $("#lstItems").hide();
                 $("#btnSubmit").attr("disabled", "disabled");
             }
@@ -27,29 +32,25 @@ function log(info) {
 }
 
 function postContent(data, action, tab) {
-    log(`[popup][postContent]`);
-    log(data);
-    log(action);
-    log(tab);
+    log(`[popup.postContent]`);
     let str = "";
     for (let key in data) {
-        log(data[key]);
         str += $("<input/>").attr('name', key).attr('type', 'hidden').val(data[key]).prop('outerHTML');
     }
-    log(str);
     $('form').attr('action', action).append(str).submit();
     chrome.tabs.reload(tab.id);
 }
 $(function () {
+    log(`[popup.$]`);
     render();
     $("#btnSubmit").click(() => {
+        log(`[popup.$.btnSubmit.click]`);
         chrome.tabs.getSelected(null, tab => {
-            log(`[popup][submit][tabs.getSelected]`);
-            log(tab);
+            log(`[popup.$.btnSubmit.click.chrome.tabs.getSelected]`);
             chrome.storage.local.get('selectorList', data => {
-                log(`[popup][submit][storage.local.get]:data`);
-                log(data);
-                if (data.hasOwnProperty('selectorList')) {
+                log(`[popup.$.btnSubmit.click.chrome.tabs.getSelected.chrome.storage.local.get]:selectorList`);
+                if (data.selectorList) {
+                    log(`[popup.$.btnSubmit.click.chrome.tabs.getSelected.chrome.storage.local.get]:selectorList.selectorList`);
                     var items = data.selectorList;
                     var newItems = [];
                     var obj = {
@@ -60,27 +61,23 @@ $(function () {
                     for (var i = 0; i < items.length; i++) {
                         var item = items[i];
                         if (item.tabId === tab.id && item.windowId === tab.windowId && item.tabUrl === tab.url) {
+                            log(`[popup.$.btnSubmit.click.chrome.tabs.getSelected.chrome.storage.local.get]:selectorList.selectorList:===`);
                             obj.items.push({
                                 'tag': item.field,
                                 'selector': item.selector
                             });
                             currentItems[item.field] = item.html;
                         } else {
+                            log(`[popup.$.btnSubmit.click.chrome.tabs.getSelected.chrome.storage.local.get]:selectorList.selectorList!==`);
                             newItems.push(item);
                         }
                     }
-                    log(`[popup][submit][storage.local.get]:obj`);
-                    log(obj);
-                    log(`[popup][submit][storage.local.get]:newItems`);
-                    log(newItems);
                     chrome.storage.sync.get('options', options => {
-                        log(`[popup][submit][storage.local.get][storage.sync.get]:options`);
-                        log(options);
+                        log(`[popup.$.btnSubmit.click.chrome.tabs.getSelected.chrome.storage.local.get]:selectorList.selectorList[chrome.storage.sync.get]:options`);
                         $.post(options.options.request, {
                             'jsonRule': JSON.stringify(obj)
                         }, response => {
-                            log(`[popup][submit][storage.local.get][storage.local.get][post]:response`);
-                            log(response);
+                            log(`[popup.$.btnSubmit.click.chrome.tabs.getSelected.chrome.storage.local.get]:selectorList.selectorList[chrome.storage.sync.get]:options[$.post]:request`);
                             if (response.notice) {
                                 var article = response.notice;
                                 if (newItems.length > 0) {
@@ -179,7 +176,9 @@ $(function () {
     });
 });
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.update && request.update === 1) {
+    log(`[popup.chrome.runtime.onMessage.addListener]`);
+    if (request.update) {
+        log(`[popup.chrome.runtime.onMessage.addListener]:update`);
         render();
     }
 });

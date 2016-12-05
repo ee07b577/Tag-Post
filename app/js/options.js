@@ -1,21 +1,22 @@
-$(function() {
-    chrome.storage.sync.get('options', function(data) {
-        if (data && data.options) {
-            var options = data.options;
-            for (var i in options) {
+$(() => {
+    let sync = chrome.storage.sync;
+    sync.get('options', data => {
+        if (data.options) {
+            let options = data.options;
+            for (let i in options) {
                 $(`input[data-option="${i}"]`).val(options[i]);
             }
         }
     });
-    $('#btnSave').click(function() {
-        var options = {};
-        $('input[data-option]').each(function(index, input) {
+    $('#btnSave').click(() => {
+        let options = {};
+        $('input[data-option]').each((index, input) => {
             options[$(input).data('option')] = $(input).val();
         });
-        chrome.storage.sync.set({
+        sync.set({
             'options': options
-        }, function() {
+        }, () => {
             window.close();
-        })
+        });
     });
 });

@@ -8,7 +8,7 @@
 
 img.tag-highlight {
     box-shadow: 0 0 0 0;
-    filter: drop-shadow(0 0 1px #f00);
+    filter: drop-shadow(0 0 1px #900);
 }
 
 .tag-markup {
@@ -16,12 +16,22 @@ img.tag-highlight {
     position: relative;
 }
 
+img.tag-markup {
+    box-shadow: 0 0 0 0;
+    filter: drop-shadow(0 0 1px #090);
+}
+
 .tag-conflict {
     box-shadow: var(--shadow) #00c;
 }
 
+img.tag-conflict {
+    box-shadow: 0 0 0 0;
+    filter: drop-shadow(0 0 1px #009);
+}
+
 .tag-markup::before {
-    content: attr(data-field);
+    content: attr(data-tag);
     color: #333;
     background: #0c0;
     border-radius: 2px 2px 0 0;
@@ -34,4 +44,10 @@ img.tag-highlight {
     padding: 2px 2px 0;
     right: 0;
     margin: 0;
+}
+
+img.tag-markup::before {
+    border-radius: 2px 2px 0 0;
+    top: 14px;
+    padding: 2px 2px 0;
 }

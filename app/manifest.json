@@ -10,7 +10,7 @@
         "128": "images/128.png"
     },
     "browser_action": {
-        "default_title": "Collector",
+        "default_title": "__MSG_extName__",
         "default_icon": {
             "16": "images/16.png",
             "24": "images/24.png",
@@ -22,7 +22,6 @@
     },
     "content_scripts": [{
         "matches": ["http://*/*", "https://*/*"],
-        "js": ["./js/jquery.min.js"],
         "css": ["./css/highlight.css"]
     }],
     "options_page": "options.html",

@@ -31,7 +31,7 @@ img.tag-conflict {
 }
 
 .tag-markup::before {
-    content: attr(data-tag);
+    content: attr(data-tagName);
     color: #333;
     background: #0c0;
     border-radius: 2px 2px 0 0;

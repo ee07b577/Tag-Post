@@ -1,23 +1,24 @@
 function render() {
     log(`[popup.render]`);
     chrome.tabs.getSelected(null, tab => {
-        log(`[popup.render.chrome.tabs.getSelected]`);
+        log(`[chrome.tabs.getSelected]`);
         chrome.storage.local.get('selectorList', data => {
-            log(`[popup.render.chrome.storage.local.get]:selectorList`);
+            log(`[chrome.storage.local.get]:selectorList`);
+            log(data);
             if (data.selectorList) {
-                log(`[popup.render.chrome.storage.local.get]:selectorList.selectorList`);
-                var items = data.selectorList;
+                log(data.selectorList);
+                let items = data.selectorList;
                 $('.list-group').html('');
-                for (var i = 0; i < items.length; i++) {
-                    var item = items[i];
+                for (let i = 0; i < items.length; i++) {
+                    let item = items[i];
                     if (item.tabId === tab.id && item.windowId === tab.windowId && item.tabUrl === tab.url) {
-                        var field = chrome.i18n.getMessage(item.field);
-                        var selector = item.selector;
+                        let field = chrome.i18n.getMessage(item.field);
+                        let selector = item.selector;
                         $('.list-group').append($('<li class="list-group-item"><div class="input-group input-group-sm"><span class="input-group-btn lblInfo"><button class="btn btn-info" disabled="disabled">' + field + '</button></span><input type="text" class="form-control" value="' + selector + '"><span class="input-group-btn btnDel"><button class="btn btn-danger"><span class="glyphicon glyphicon-remove" data-selector="' + selector + '" data-tag="' + item.field + '"></span></button></span></div></li>'));
                     }
                 }
             } else {
-                log(`[popup.render.chrome.storage.local.get]:selectorList.!selectorList`);
+                log(`!data.selectorList`);
                 $("#lstItems").hide();
                 $("#btnSubmit").attr("disabled", "disabled");
             }
@@ -40,51 +41,53 @@ function postContent(data, action, tab) {
     $('form').attr('action', action).append(str).submit();
     chrome.tabs.reload(tab.id);
 }
-$(function () {
+$(() => {
     log(`[popup.$]`);
     render();
     $("#btnSubmit").click(() => {
-        log(`[popup.$.btnSubmit.click]`);
+        log(`[$.btnSubmit.click]`);
         chrome.tabs.getSelected(null, tab => {
-            log(`[popup.$.btnSubmit.click.chrome.tabs.getSelected]`);
+            log(`[chrome.tabs.getSelected]`);
             chrome.storage.local.get('selectorList', data => {
-                log(`[popup.$.btnSubmit.click.chrome.tabs.getSelected.chrome.storage.local.get]:selectorList`);
+                log(`[chrome.storage.local.get]:selectorList`);
+                log(data);
                 if (data.selectorList) {
-                    log(`[popup.$.btnSubmit.click.chrome.tabs.getSelected.chrome.storage.local.get]:selectorList.selectorList`);
-                    var items = data.selectorList;
-                    var newItems = [];
-                    var obj = {
+                    log(data.selectorList);
+                    let items = data.selectorList;
+                    let newItems = [];
+                    let obj = {
                         'url': tab.url,
                         'items': []
                     };
-                    var currentItems = {};
-                    for (var i = 0; i < items.length; i++) {
-                        var item = items[i];
+                    let currentItems = {};
+                    for (let i = 0; i < items.length; i++) {
+                        let item = items[i];
                         if (item.tabId === tab.id && item.windowId === tab.windowId && item.tabUrl === tab.url) {
-                            log(`[popup.$.btnSubmit.click.chrome.tabs.getSelected.chrome.storage.local.get]:selectorList.selectorList:===`);
                             obj.items.push({
                                 'tag': item.field,
                                 'selector': item.selector
                             });
                             currentItems[item.field] = item.html;
                         } else {
-                            log(`[popup.$.btnSubmit.click.chrome.tabs.getSelected.chrome.storage.local.get]:selectorList.selectorList!==`);
                             newItems.push(item);
                         }
                     }
                     chrome.storage.sync.get('options', options => {
-                        log(`[popup.$.btnSubmit.click.chrome.tabs.getSelected.chrome.storage.local.get]:selectorList.selectorList[chrome.storage.sync.get]:options`);
+                        log(`[chrome.storage.sync.get]`);
+                        log(options);
                         $.post(options.options.request, {
                             'jsonRule': JSON.stringify(obj)
                         }, response => {
-                            log(`[popup.$.btnSubmit.click.chrome.tabs.getSelected.chrome.storage.local.get]:selectorList.selectorList[chrome.storage.sync.get]:options[$.post]:request`);
+                            log(`[$.post]`);
+                            log(response);
                             if (response.notice) {
-                                var article = response.notice;
+                                log(response.notice);
+                                let article = response.notice;
                                 if (newItems.length > 0) {
                                     chrome.storage.local.set({
                                         'selectorList': newItems
                                     }, () => {
-                                        log(`[popup][submit][storage.local.get][storage.local.get][post][storage.local.set]`);
+                                        log(`[chrome.storage.local.set]`);
                                         if (article.title && article.content && article.source) {
                                             postContent({
                                                 'article_ContentFrom': article.source,
@@ -103,7 +106,7 @@ $(function () {
                                     });
                                 } else {
                                     chrome.storage.local.clear(() => {
-                                        log(`[popup][submit][storage.local.get][storage.local.get][post][storage.local.clear]`);
+                                        log(`[chrome.storage.local.clear]`);
                                         if (article.title && article.content && article.source) {
                                             postContent({
                                                 'article_ContentFrom': article.source,
@@ -130,7 +133,7 @@ $(function () {
                                 }, options.options.afterRequest, tab);
                             }
                         }, 'json').fail(() => {
-                            log(`[popup][submit][storage.local.get][storage.local.get][post]:fail`);
+                            log(`[$.post]:fail`);
                             postContent({
                                 'article_ContentFrom': currentItems.source,
                                 'article_title': currentItems.title,
@@ -144,14 +147,19 @@ $(function () {
         });
     });
     $('body').on('click', '.glyphicon-remove', () => {
-        var field = $(this).data('tag');
-        var selector = $(this).data('selector');
+        log('[popup.$.click]');
+        let field = $(this).data('tag');
+        let selector = $(this).data('selector');
         chrome.tabs.getSelected(null, tab => {
+            log('[chrome.tabs.getSelected]');
             chrome.storage.local.get('selectorList', data => {
-                if (data.hasOwnProperty('selectorList')) {
-                    var items = data.selectorList;
-                    for (var i = 0; i < items.length; i++) {
-                        var item = items[i];
+                log('[chrome.storage.local.get]:selectorList');
+                log(data);
+                if (data.selectorList) {
+                    log(data.selectorList);
+                    let items = data.selectorList;
+                    for (let i = 0; i < items.length; i++) {
+                        let item = items[i];
                         if (item.tabId === tab.id && item.windowId === tab.windowId && item.tabUrl === tab.url && item.field === field && item.selector === selector && item.tabUrl === tab.url) {
                             items.splice(i, 1);
                         }
@@ -176,9 +184,9 @@ $(function () {
     });
 });
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    log(`[popup.chrome.runtime.onMessage.addListener]`);
-    if (request.update) {
-        log(`[popup.chrome.runtime.onMessage.addListener]:update`);
+            log(`[popup.chrome.runtime.onMessage.addListener]`);
+            if (request.update) {
+                log(request.update `);
         render();
     }
 });

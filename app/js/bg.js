@@ -1,9 +1,9 @@
 const XHR = new XMLHttpRequest();
 let Tags;
 XHR.onreadystatechange = () => {
-    //console.info('[background.XHR.readyStateChanged]');
+    console.info('[background.XHR.onreadystatechange]');
     if (XHR.readyState === 4) {
-        //console.info('[background.XHR.readyStateChanged]:XHR.readyState==4')
+        console.log(XHR.readyState);
         Tags = JSON.parse(XHR.responseText);
     }
 };
@@ -12,7 +12,7 @@ XHR.send();
 let Arr = [];
 for (let e of[chrome.tabs.onUpdated, chrome.tabs.onMoved, chrome.tabs.onSelectionChanged]) {
     e.addListener(() => {
-        //console.warn(`[background.chrome.tabs.on$Event$.addListener]`);
+        console.info(`[background.chrome.tabs.on?.addListener]`);
         chrome.runtime.sendMessage({
             'update': 1
         });
@@ -20,14 +20,14 @@ for (let e of[chrome.tabs.onUpdated, chrome.tabs.onMoved, chrome.tabs.onSelectio
 }
 
 function inject(tab) {
-    console.info(`[background.inject]`);
+    console.log(`[background.inject]`);
     let browserAction = chrome.browserAction;
     browserAction.getPopup({
         'tabId': tab.id
     }, result => {
-        console.info(`[background.inject.chrome.browserAction.getPopup]`);
+        console.log(`[chrome.browserAction.getPopup]`);
         if (!result) {
-            console.info(`[background.inject.chrome.browserAction.getPopup]:result`);
+            console.log(`!popup`);
             browserAction.setBadgeText({
                 'tabId': tab.id,
                 'text': '·'
@@ -54,43 +54,42 @@ function inject(tab) {
         }
     });
 }
-chrome.browserAction.onClicked.addListener(function (tab) {
-    console.warn('[chrome.browserAction.onClicked.addListener]');
-    chrome.storage.sync.get('options', function (options) {
-        console.info('[chrome.storage.sync.get]:options');
+chrome.browserAction.onClicked.addListener(tab => {
+    console.log('%c[background.chrome.browserAction.onClicked.addListener]', 'color:orange');
+    chrome.storage.sync.get('options', options => {
+        console.log('[chrome.storage.sync.get]');
+        console.log(options);
         $.get(options.options.beforeRequest, {
             'url': tab.url
         }).done(article => {
-            console.info('[$.get]:beforeRequest:done');
+            console.log('[$.get]:done');
+            console.log(article);
             for (let key in Tags) {
                 let tag = Tags[key];
                 if (tag.required && !article[key]) {
+                    console.log(key);
                     inject(tab);
                     return;
-                    break;
                 }
             }
-            let data = {
-                'article_ContentFrom': article.source,
-                'article_title': article.title,
-                'article_content': article.content,
-                'article_keyword': ''
+            let str = '';
+            for (let key in article) {
+                let tag = Tags[key];
+                str += $("<input/>").attr('name', key).attr('type', 'hidden').val(article[key]).prop('outerHTML');
             }
-            let str = "";
-            for (let key in data) {
-                log(data[key]);
-                str += $("<input/>").attr('name', key).attr('type', 'hidden').val(data[key]).prop('outerHTML');
-            }
-            $('form').attr('action', options.options.afterRequest).append(str).submit();
+            console.log(str);
+            $('body').append($('<form/>').attr('target', '_blank').attr('method', 'POST').attr('action', options.options.afterRequest).append(str).submit());
             chrome.tabs.reload(tab.id);
         }).fail(() => {
+            console.log('[$.get]:fail');
             inject(tab);
         });
     });
 });
 chrome.runtime.onInstalled.addListener(() => {
-    //console.warn(`[background.chrome.runtime.onInstalled.addListener]`);
+    console.log(`%c[background.chrome.runtime.onInstalled.addListener]`, 'color:orange');
     chrome.storage.local.clear(() => {
+        console.log('[chrome.storage.local.clear]');
         chrome.tabs.create({
             'url': 'options.html'
         });
@@ -98,6 +97,7 @@ chrome.runtime.onInstalled.addListener(() => {
 });
 
 function getSelector(tab) {
+    console.log('[background.getSelector]');
     while (Arr.length === 0); {
         let data = Arr.pop();
         if (data.tabId === tab.id && data.windowId === data.windowId && data.tabUrl === data.tabUrl) {
@@ -107,23 +107,26 @@ function getSelector(tab) {
 }
 
 function restore(key, tab) {
-    console.info(`[background.restore]`);
-    var selector = getSelector(tab);
+    console.log(`[background.restore]`);
+    let selector = getSelector(tab);
     if (selector) {
-        console.info(`[background.restore]:selector`);
-        selector.tag = key; //?key?
+        console.log(selector);
+        selector.tagId = key;
+        selector.tagName = Tags[key].name;
         chrome.storage.local.get('selectorList', data => {
-            console.info(`[background.restore.chrome.storage.local.get]:selectorList`);
+            console.log(`[chrome.storage.local.get]:selectorList`);
+            console.log(data);
             let selectorList = data.selectorList || [];
             selectorList.push(selector);
             chrome.storage.local.set({
-                'selectorList': data.selectorList
+                'selectorList': selectorList
+            }, xxx => {
+                console.log('[chrome.storage.local.set]:selectorList');
+                console.log(xxx);
             });
         });
         chrome.tabs.sendMessage(tab.id, {
-            'addTag': selector,
-            'tagName': Tags[key].name,
-            'tagId': key
+            'addTag': selector
         });
         chrome.runtime.sendMessage({
             'update': 1
@@ -133,38 +136,40 @@ function restore(key, tab) {
 
 
 function createMenus(key) {
-    console.info(`[background.createMenus]`);
+    console.log(`[background.createMenus]`);
     chrome.contextMenus.removeAll(() => {
-        console.info('[background.createMenus.chrome.contextMenus.removeAll]');
+        console.log('[chrome.contextMenus.removeAll]');
         chrome.contextMenus.create({
             'title': chrome.i18n.getMessage('markupAs') + Tags[key].name,
             'contexts': ['all'],
             'onclick': (info, tab) => {
-                console.info(`[background.createMenus.chrome.contextMenus.removeAll.chrome.contextMenus.create.onclick]`);
+                console.log(`%c[onclick]`, 'color:orange');
                 restore(key, tab);
             }
         });
     });
 }
 chrome.runtime.onMessage.addListener((request, sender) => {
-    //console.warn('[background.chrome.runtime.onMessage.addListener]');
     let tab = sender.tab || request.tab;
     if (request.log) {
-        //console.log('[background.chrome.runtime.onMessage.addListener]:log');
         console.log(request.log);
     }
     if (request.getData) {
-        console.info('[background.chrome.runtime.onMessage.addListener]:getData');
+        console.log('getData');
+        console.log(request.getData);
         chrome.storage.local.get('selectorList', data => {
-            console.info('[background][message]:getData[storage.local.get]:selectorList');
+            console.log('[chrome.storage.local.get]:selectorList');
+            console.log(data);
             let currentSelector = [];
             if (data.selectorList) {
+                console.log(data.selectorList);
                 let items = data.selectorList;
                 for (let item of items) {
                     if (item.tabUrl === tab.url && item.tabId === tab.id && item.windowId === tab.windowId) {
                         currentSelector.push({
                             "selector": item.selector,
-                            "tag": item.tag,
+                            "tagName": item.tagName,
+                            "tagId": item.tagId,
                             "html": item.html
                         });
                     }
@@ -176,7 +181,8 @@ chrome.runtime.onMessage.addListener((request, sender) => {
         });
     }
     if (request.data) {
-        console.info('[background.chrome.runtime.onMessage.addListener]:data');
+        console.log('data');
+        console.log(request.data);
         let data = request.data;
         data.tabId = tab.id;
         data.windowId = tab.windowId;

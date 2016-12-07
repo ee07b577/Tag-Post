@@ -2,13 +2,7 @@ chrome.runtime.sendMessage({
     'getData': 1
 });
 
-function log(info) {
-    chrome.runtime.sendMessage({
-        'log': info
-    });
-}
 $('body').on('contextmenu', '*', event => {
-    log('[content.$.onContextmenu]');
     event.stopPropagation();
     let currentTarget = event.currentTarget;
     let html = $(currentTarget).removeClass('tag-highlight').prop('outerHTML');
@@ -54,18 +48,14 @@ $('body').on('contextmenu', '*', event => {
     $(event.currentTarget).removeClass('tag-highlight').removeClass('tag-conflict');
 });
 chrome.runtime.onMessage.addListener(request => {
-    log('[content.chrome.runtime.onMessage].addListener');
-    log(request);
     if (request.addTag) {
         let tag = request.addTag;
-        log(tag);
-        $(tag.selector).addClass('tag-markup').attr('data-tagName', tag.tagName).attr('data-tagId', tag.tagId);
+        $(tag.selector).addClass('tag-markup').attr('data-tagname', tag.tagName).attr('data-tagid', tag.tagId);
     }
     if (request.currentSelector) {
-        log(request.currentSelector);
         $('.tag-markup').removeClass('tag-markup');
         for (let item of request.currentSelector) {
-            $(item.selector).addClass('tag-markup').attr('data-tag', item.tagName).attr('data-tagId', item.tagId);
+            $(item.selector).addClass('tag-markup').attr('data-tagname', item.tagName).attr('data-tagid', item.tagId);
         }
     }
 });

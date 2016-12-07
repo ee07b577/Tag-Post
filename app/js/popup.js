@@ -1,24 +1,22 @@
+let Tags;
+$.getJSON(chrome.extension.getURL('data/tags.json'), tags => {
+    Tags = tags;
+});
+
 function render() {
-    log(`[popup.render]`);
     chrome.tabs.getSelected(null, tab => {
-        log(`[chrome.tabs.getSelected]`);
         chrome.storage.local.get('selectorList', data => {
-            log(`[chrome.storage.local.get]:selectorList`);
-            log(data);
             if (data.selectorList) {
-                log(data.selectorList);
                 let items = data.selectorList;
                 $('.list-group').html('');
                 for (let i = 0; i < items.length; i++) {
                     let item = items[i];
                     if (item.tabId === tab.id && item.windowId === tab.windowId && item.tabUrl === tab.url) {
-                        let field = chrome.i18n.getMessage(item.field);
                         let selector = item.selector;
-                        $('.list-group').append($('<li class="list-group-item"><div class="input-group input-group-sm"><span class="input-group-btn lblInfo"><button class="btn btn-info" disabled="disabled">' + field + '</button></span><input type="text" class="form-control" value="' + selector + '"><span class="input-group-btn btnDel"><button class="btn btn-danger"><span class="glyphicon glyphicon-remove" data-selector="' + selector + '" data-tag="' + item.field + '"></span></button></span></div></li>'));
+                        $('.list-group').append($(`<li class="list-group-item"><div class="input-group input-group-sm"><span class="input-group-btn lblInfo"><button class="btn btn-info" disabled="disabled">${item.tagName}</button></span><input type="text" class="form-control" value="${selector}"><span class="input-group-btn btnDel"><button class="btn btn-danger"><span class="glyphicon glyphicon-remove" data-selector="${selector}" data-tagid="${item.tagId}"></span></button></span></div></li>`));
                     }
                 }
             } else {
-                log(`!data.selectorList`);
                 $("#lstItems").hide();
                 $("#btnSubmit").attr("disabled", "disabled");
             }
@@ -26,33 +24,20 @@ function render() {
     });
 }
 
-function log(info) {
-    chrome.runtime.sendMessage({
-        'log': info
-    });
-}
-
 function postContent(data, action, tab) {
-    log(`[popup.postContent]`);
     let str = "";
     for (let key in data) {
         str += $("<input/>").attr('name', key).attr('type', 'hidden').val(data[key]).prop('outerHTML');
     }
-    $('form').attr('action', action).append(str).submit();
+    $('<form/>').attr('method', 'post').attr('target', '_blank').attr('action', action).append(str).submit();
     chrome.tabs.reload(tab.id);
 }
 $(() => {
-    log(`[popup.$]`);
     render();
     $("#btnSubmit").click(() => {
-        log(`[$.btnSubmit.click]`);
         chrome.tabs.getSelected(null, tab => {
-            log(`[chrome.tabs.getSelected]`);
             chrome.storage.local.get('selectorList', data => {
-                log(`[chrome.storage.local.get]:selectorList`);
-                log(data);
                 if (data.selectorList) {
-                    log(data.selectorList);
                     let items = data.selectorList;
                     let newItems = [];
                     let obj = {
@@ -62,84 +47,38 @@ $(() => {
                     let currentItems = {};
                     for (let i = 0; i < items.length; i++) {
                         let item = items[i];
+                        let tagId = item.tagId;
                         if (item.tabId === tab.id && item.windowId === tab.windowId && item.tabUrl === tab.url) {
                             obj.items.push({
-                                'tag': item.field,
+                                'tag': tagId,
                                 'selector': item.selector
                             });
-                            currentItems[item.field] = item.html;
+                            currentItems[tagId] = Tags[tagId].html ? item.html : item.text;
                         } else {
                             newItems.push(item);
                         }
                     }
                     chrome.storage.sync.get('options', options => {
-                        log(`[chrome.storage.sync.get]`);
-                        log(options);
                         $.post(options.options.request, {
                             'jsonRule': JSON.stringify(obj)
                         }, response => {
-                            log(`[$.post]`);
-                            log(response);
                             if (response.notice) {
-                                log(response.notice);
-                                let article = response.notice;
-                                if (newItems.length > 0) {
-                                    chrome.storage.local.set({
-                                        'selectorList': newItems
-                                    }, () => {
-                                        log(`[chrome.storage.local.set]`);
-                                        if (article.title && article.content && article.source) {
-                                            postContent({
-                                                'article_ContentFrom': article.source,
-                                                'article_title': article.title,
-                                                'article_content': article.content,
-                                                'article_keyword': ''
-                                            }, options.options.afterRequest, tab);
-                                        } else {
-                                            postContent({
-                                                'article_ContentFrom': currentItems.source,
-                                                'article_title': currentItems.title,
-                                                'article_content': currentItems.content,
-                                                'article_keyword': ''
-                                            }, options.options.afterRequest, tab);
-                                        }
-                                    });
-                                } else {
-                                    chrome.storage.local.clear(() => {
-                                        log(`[chrome.storage.local.clear]`);
-                                        if (article.title && article.content && article.source) {
-                                            postContent({
-                                                'article_ContentFrom': article.source,
-                                                'article_title': article.title,
-                                                'article_content': article.content,
-                                                'article_keyword': ''
-                                            }, options.options.afterRequest, tab);
-                                        } else {
-                                            postContent({
-                                                'article_ContentFrom': currentItems.source,
-                                                'article_title': currentItems.title,
-                                                'article_content': currentItems.content,
-                                                'article_keyword': ''
-                                            }, options.options.afterRequest, tab);
-                                        }
-                                    });
+                                let notice = response.notice;
+                                chrome.storage.local.set({
+                                    'selectorList': newItems
+                                });
+                                for (let key in Tags) {
+                                    if (Tags[key].required && !notice[key]) {
+                                        postContent(currentItems, options.options.afterRequest, tab);
+                                        return;
+                                    }
                                 }
-                            } else {
-                                postContent({
-                                    'article_ContentFrom': currentItems.source,
-                                    'article_title': currentItems.title,
-                                    'article_content': currentItems.content,
-                                    'article_keyword': ''
-                                }, options.options.afterRequest, tab);
+                                postContent(notice, options.options.afterRequest, tab);
+                                return;
                             }
+                            postContent(currentItems, options.options.afterRequest, tab);
                         }, 'json').fail(() => {
-                            log(`[$.post]:fail`);
-                            postContent({
-                                'article_ContentFrom': currentItems.source,
-                                'article_title': currentItems.title,
-                                'article_content': currentItems.content,
-                                'article_keyword': ''
-                            }, options.options.afterRequest, tab);
+                            postContent(currentItems, options.options.afterRequest, tab);
                         });
                     });
                 }
@@ -147,20 +86,15 @@ $(() => {
         });
     });
     $('body').on('click', '.glyphicon-remove', () => {
-        log('[popup.$.click]');
-        let field = $(this).data('tag');
+        let tagId = $(this).data('tagid');
         let selector = $(this).data('selector');
         chrome.tabs.getSelected(null, tab => {
-            log('[chrome.tabs.getSelected]');
             chrome.storage.local.get('selectorList', data => {
-                log('[chrome.storage.local.get]:selectorList');
-                log(data);
                 if (data.selectorList) {
-                    log(data.selectorList);
                     let items = data.selectorList;
                     for (let i = 0; i < items.length; i++) {
                         let item = items[i];
-                        if (item.tabId === tab.id && item.windowId === tab.windowId && item.tabUrl === tab.url && item.field === field && item.selector === selector && item.tabUrl === tab.url) {
+                        if (item.tabId === tab.id && item.windowId === tab.windowId && item.tabUrl === tab.url && item.tagId === tagId && item.selector === selector && item.tabUrl === tab.url) {
                             items.splice(i, 1);
                         }
                     }
@@ -184,9 +118,7 @@ $(() => {
     });
 });
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-            log(`[popup.chrome.runtime.onMessage.addListener]`);
-            if (request.update) {
-                log(request.update `);
+    if (request.update) {
         render();
     }
 });

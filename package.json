@@ -1,6 +1,6 @@
 {
   "name": "tag-collector",
-  "version": "0.0.1",
+  "version": "2.0.0",
   "description": "Collect HTML Tag and Save for Any Using",
   "main": "index.js",
   "scripts": {
